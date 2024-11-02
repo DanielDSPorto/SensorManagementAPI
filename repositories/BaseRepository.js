@@ -1,4 +1,5 @@
-import pool from './db.js';
+import { camelToSnakeCase } from "../utils/utilFunctions.js";
+import pool from "./db.js";
 
 class BaseRepository {
   static async getAll(table, columnsArray) {
@@ -31,11 +32,8 @@ class BaseRepository {
         ({ columnName }, index) =>
           (baseQuery += `AND ${columnName} = $${index + 1} `)
       );
-      baseQuery += ';';
-      console.log(baseQuery);
-      console.log(filterValuesArray);
+      baseQuery += ";";
       const results = await pool.query(baseQuery, filterValuesArray);
-      console.log(results.rows);
       return results.rows;
     } catch (error) {
       throw error;
@@ -45,18 +43,19 @@ class BaseRepository {
   static async insertOne(table, insertObject) {
     const columns = Object.keys(insertObject);
     const columnsValues = columns.map((key) => insertObject[key]);
+    const client = await pool.connect();
     try {
-      await client.query('BEGIN');
-      const queryText = `INSERT INTO ${table} (${columns.join()}) VALUES(${Array.from(
-        new Array(columns.length).keys()
-      )
+      await client.query("BEGIN");
+      const queryText = `INSERT INTO ${table} (${columns
+        .map((columnName) => camelToSnakeCase(columnName))
+        .join()}) VALUES(${Array.from(new Array(columns.length).keys())
         .map((num) => `$${num + 1}`)
         .join()}) RETURNING id`;
       const res = (await client.query(queryText, columnsValues)).rows[0].id;
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return res;
     } catch (e) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw e;
     } finally {
       client.release();
@@ -66,7 +65,7 @@ class BaseRepository {
   static async updateById(table, updateObject, id) {
     const columns = Object.keys(updateObject);
     const columnsValues = columns.map((key) => updateObject[key]);
-    let updateInfo = '';
+    let updateInfo = "";
     let index = 0;
     while (index < columns.length - 1) {
       updateInfo += `${columns[index]} = $${index + 1}, `;
@@ -75,16 +74,16 @@ class BaseRepository {
     updateInfo += `${columns[index]} = $${index + 1} `;
     const client = await pool.connect();
     try {
-      await client.query('BEGIN TRANSACTION');
+      await client.query("BEGIN TRANSACTION");
       const queryText = `UPDATE ${table} SET ${updateInfo} WHERE id = $${
         index + 2
       } RETURNING ${columns.join()}`;
 
       const response = await client.query(queryText, [...columnsValues, id]);
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return response.rows[0];
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();

@@ -26,6 +26,16 @@ class ReadingsRepository extends BaseRepository {
       throw error;
     }
   }
+
+  static async insertOne(sensorReadingObj) {
+    try {
+      const id = await super.insertOne('readings', sensorReadingObj);
+      return id;
+    }
+    catch (error) {
+      throw error;
+    }
+  }
 }
 
 export default ReadingsRepository;

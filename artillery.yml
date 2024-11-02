@@ -1,0 +1,40 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 60 # Duração do teste em segundos
+      arrivalRate: 5 # Taxa de chegada de requisições por segundo
+      rampTo: 20
+      name: Aquecimento
+    - duration: 60
+      arrivalRate: 20
+      rampTo: 40
+      name: Período quente
+    - duration: 30
+      arrivalRate: 40
+      rampTo: 100
+      name: Pico
+  plugins:
+    ensure: {}
+    apdex: {}
+    metrics-by-endpoint: {}
+  apdex:
+    threshold: 100 #o tempo de resposta não deve ultrapassar esse número (em ms)
+  ensure:
+    thresholds:
+      - http.response_time.p99: 100 #Isso diz que 99% das requisições deve ser atendida em 100ms ou menos
+      - http.response_time.p95: 75 #Isso diz que 95% das requisições deve ser atendida em 100ms ou menos
+
+scenarios:
+  # - name: "Test GET method"
+  #   flow:
+  #     - get:
+  #         url: "/sensor"
+
+  - name: "Test POST method"
+    flow:
+      - post:
+          url: "/readings"
+          json:
+            equipmentId: "EQ-12495"
+            timestamp: "2023-02-15T01:30:00.000-05:00"
+            value: 78.42
