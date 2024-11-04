@@ -9,3 +9,10 @@ CREATE TABLE sensor_readings (
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     value REAL NOT NULL
 );
+
+CREATE TABLE readings (
+    id SERIAL PRIMARY KEY,
+    equipment_id VARCHAR(50),
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    value REAL NOT NULL
+);

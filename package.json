@@ -1,10 +1,10 @@
 {
   "name": "sensormanagementapi",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "orchestrator.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --env-file=.env --watch ./orchestrator.js"
+    "dev": "node --env-file=.env --watch ."
   },
   "keywords": [],
   "author": "",
@@ -12,7 +12,11 @@
   "description": "",
   "type": "module",
   "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parse": "^5.5.6",
+    "date-fns": "^4.1.0",
     "express": "^4.21.1",
+    "express-fileupload": "^1.5.1",
     "joi": "^17.13.3",
     "pg": "^8.13.1"
   },

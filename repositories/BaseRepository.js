@@ -12,6 +12,34 @@ class BaseRepository {
     }
   }
 
+  static async getTimeAggregatedAll(
+    table,
+    aggregationFunction,
+    aggregationTarget,
+    otherColumnsArray,
+    aggregationTimeExpression,
+    groupByArray,
+    orderByArray
+  ) {
+    try {
+      let baseQuery = `SELECT ${aggregationFunction}(${aggregationTarget}) ${
+        otherColumnsArray.length ? `, ${otherColumnsArray.join()}` : ""
+      }
+       FROM ${table}
+       WHERE ${aggregationTimeExpression} 
+       ${groupByArray.length ? `GROUP BY ${groupByArray.join()}` : ""} 
+       ${orderByArray.length ? `ORDER BY ${orderByArray.join()} DESC` : ""} 
+       `;
+      baseQuery += ";";
+      console.log(baseQuery);
+      const results = await pool.query(baseQuery);
+      console.log(results);
+      return results.rows;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async getOne(table, columnsArray, id) {
     try {
       let baseQuery = `SELECT ${columnsArray.join()} FROM ${table} WHERE id = $1`;
@@ -62,29 +90,29 @@ class BaseRepository {
     }
   }
 
-  static async updateById(table, updateObject, id) {
-    const columns = Object.keys(updateObject);
-    const columnsValues = columns.map((key) => updateObject[key]);
-    let updateInfo = "";
-    let index = 0;
-    while (index < columns.length - 1) {
-      updateInfo += `${columns[index]} = $${index + 1}, `;
-      index++;
-    }
-    updateInfo += `${columns[index]} = $${index + 1} `;
+  static async insertMultiple(table, parsedValuesArray) {
+    console.log(parsedValuesArray);
+    const columns = parsedValuesArray.shift();
+    console.log(columns);
     const client = await pool.connect();
     try {
-      await client.query("BEGIN TRANSACTION");
-      const queryText = `UPDATE ${table} SET ${updateInfo} WHERE id = $${
-        index + 2
-      } RETURNING ${columns.join()}`;
-
-      const response = await client.query(queryText, [...columnsValues, id]);
+      await client.query("BEGIN");
+      let queryText = `INSERT INTO ${table} (${columns
+        .map((columnName) => camelToSnakeCase(columnName))
+        .join()}) 
+        VALUES `;
+      for (let index = 0; index < parsedValuesArray.length; index++) {
+        queryText += `(${Array.from(new Array(columns.length).keys())
+          .map((num) => `$${index * columns.length + num + 1}`)
+          .join()}), `;
+      }
+      queryText = queryText.slice(0, -2);
+      console.log(queryText);
+      await client.query(queryText, parsedValuesArray.flat());
       await client.query("COMMIT");
-      return response.rows[0];
-    } catch (error) {
+    } catch (e) {
       await client.query("ROLLBACK");
-      throw error;
+      throw e;
     } finally {
       client.release();
     }

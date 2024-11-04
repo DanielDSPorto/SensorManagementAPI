@@ -2,16 +2,16 @@ config:
   target: "http://localhost:5000"
   phases:
     - duration: 60 # Duração do teste em segundos
-      arrivalRate: 5 # Taxa de chegada de requisições por segundo
-      rampTo: 20
+      arrivalRate: 1 # Taxa de chegada de requisições por segundo
+      rampTo: 4
       name: Aquecimento
     - duration: 60
-      arrivalRate: 20
-      rampTo: 40
+      arrivalRate: 4
+      rampTo: 6
       name: Período quente
     - duration: 30
-      arrivalRate: 40
-      rampTo: 100
+      arrivalRate: 6
+      rampTo: 10
       name: Pico
   plugins:
     ensure: {}
@@ -23,6 +23,17 @@ config:
     thresholds:
       - http.response_time.p99: 100 #Isso diz que 99% das requisições deve ser atendida em 100ms ou menos
       - http.response_time.p95: 75 #Isso diz que 95% das requisições deve ser atendida em 100ms ou menos
+  payload:
+    path: "./utils/equipamentos_500_linhas.csv"
+    fields:
+      - "equipmentId"
+      - "timestamp"
+      - "value"
+    order: sequence
+    skipHeader: true
+    delimiter: ;
+    cast: true
+    name: sensorReadings
 
 scenarios:
   # - name: "Test GET method"
@@ -35,6 +46,8 @@ scenarios:
       - post:
           url: "/readings"
           json:
-            equipmentId: "EQ-12495"
-            timestamp: "2023-02-15T01:30:00.000-05:00"
-            value: 78.42
+            equipmentId: "{{ equipmentId }}"
+            timestamp: "{{ timestamp }}"
+            value: "{{ value }}"
+          headers:
+            Content-Type: "application/json"
