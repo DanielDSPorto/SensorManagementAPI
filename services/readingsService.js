@@ -42,9 +42,17 @@ export const getAvgValuesForWindowDuration = async (
 
 export const insertReadingsFromCSVFile = async (filePath, fileName) => {
   try {
-    console.log("Service layer reached");
     const parsedData = await parseCSV(filePath, fileName);
     await ReadingsRepository.insertMultiple(parsedData);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllEquipmentIds = async () => {
+  try {
+    const equipmentIds = await ReadingsRepository.getAllEquipmentIds();
+    return equipmentIds;
   } catch (error) {
     throw error;
   }

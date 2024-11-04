@@ -11,10 +11,9 @@ const pool = new pg.Pool({
 export async function fetchReadings() {
   try {
     const readings = await pool.query("SELECT * FROM readings");
-    console.log(readings);
     return readings;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 }
 

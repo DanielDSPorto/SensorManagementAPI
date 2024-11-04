@@ -7,7 +7,6 @@ const parseCSV = async (pathToFile, filename) => {
     throw new Error("Both file name and file path must be provided");
   }
   const csvLines = [];
-  console.log("bati aqui");
   const fs = await open(pathToFile + filename);
 
   return new Promise((resolve, reject) => {

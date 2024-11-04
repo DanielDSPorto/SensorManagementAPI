@@ -31,9 +31,7 @@ class BaseRepository {
        ${orderByArray.length ? `ORDER BY ${orderByArray.join()} DESC` : ""} 
        `;
       baseQuery += ";";
-      console.log(baseQuery);
       const results = await pool.query(baseQuery);
-      console.log(results);
       return results.rows;
     } catch (error) {
       throw error;
@@ -50,7 +48,12 @@ class BaseRepository {
     }
   }
 
-  static async filteredGet(table, columnsArray, filterCriteriasArray) {
+  static async filteredGet(
+    table,
+    columnsArray,
+    filterCriteriasArray,
+    orderByColumnName = ""
+  ) {
     try {
       let baseQuery = `SELECT ${columnsArray.join()} FROM ${table} WHERE 1 = 1 `;
       const filterValuesArray = filterCriteriasArray.map(
@@ -60,7 +63,8 @@ class BaseRepository {
         ({ columnName }, index) =>
           (baseQuery += `AND ${columnName} = $${index + 1} `)
       );
-      baseQuery += ";";
+      baseQuery +=
+        orderByColumnName !== "" ? `ORDER BY ${orderByColumnName} ASC;` : ";";
       const results = await pool.query(baseQuery, filterValuesArray);
       return results.rows;
     } catch (error) {
@@ -91,9 +95,7 @@ class BaseRepository {
   }
 
   static async insertMultiple(table, parsedValuesArray) {
-    console.log(parsedValuesArray);
     const columns = parsedValuesArray.shift();
-    console.log(columns);
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -107,7 +109,6 @@ class BaseRepository {
           .join()}), `;
       }
       queryText = queryText.slice(0, -2);
-      console.log(queryText);
       await client.query(queryText, parsedValuesArray.flat());
       await client.query("COMMIT");
     } catch (e) {

@@ -1,4 +1,5 @@
 import BaseRepository from "./BaseRepository.js";
+import pool from "./db.js";
 
 class ReadingsRepository extends BaseRepository {
   static async getAll() {
@@ -20,7 +21,8 @@ class ReadingsRepository extends BaseRepository {
       const results = await super.filteredGet(
         "readings",
         ["id", "equipment_id", "timestamp", "value"],
-        filterCriteriasArray
+        filterCriteriasArray,
+        "timestamp"
       );
       return results;
     } catch (error) {
@@ -67,6 +69,16 @@ class ReadingsRepository extends BaseRepository {
   static async insertMultiple(parsedValuesArray) {
     try {
       await super.insertMultiple("readings", parsedValuesArray);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getAllEquipmentIds() {
+    try {
+      const baseQuery = "SELECT DISTINCT(equipment_id) FROM readings;";
+      const result = await pool.query(baseQuery);
+      return result.rows.map((eqObj) => eqObj["equipment_id"]);
     } catch (error) {
       throw error;
     }
