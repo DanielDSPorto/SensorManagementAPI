@@ -3,9 +3,9 @@ services:
     image: postgres:latest
     container_name: SensorManagementDBContainer
     environment:
-      POSTGRES_USER: sensor_management_user
-      POSTGRES_PASSWORD: Postgres@Radix
-      POSTGRES_DB: SensorManagementDB
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -17,6 +17,6 @@ services:
 volumes:
   postgres_data:
 
-networks: 
+networks:
   postgres-network:
     external: true
